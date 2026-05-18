@@ -1,24 +1,24 @@
-import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+import os
 
-# Use a writable location for SQLite on Render
-DB_PATH = os.getenv("DATABASE_PATH", "./crud_app.db")
-SQLALCHEMY_DATABASE_URL = f"sqlite:///{DB_PATH}"
+# SQLite database URL
+SQLALCHEMY_DATABASE_URL = "sqlite:///./crud_app.db"
 
-# Ensure the database directory exists
-db_dir = os.path.dirname(DB_PATH)
-if db_dir and not os.path.exists(db_dir):
-    os.makedirs(db_dir)
-
+# Create engine
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, 
-    connect_args={"check_same_thread": False}
+    connect_args={"check_same_thread": False}  # Needed for SQLite
 )
+
+# Create session local
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Create base class for models
 Base = declarative_base()
 
+# Dependency to get DB session
 def get_db():
     db = SessionLocal()
     try:

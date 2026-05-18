@@ -16,8 +16,14 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="CRUD App with FastAPI", description="Simple CRUD application")
 
-# Mount static files and templates
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# Mount static files only if the directory exists (fix for Render)
+static_dir = "static"
+if os.path.exists(static_dir) and os.path.isdir(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+else:
+    print(f"Note: '{static_dir}' directory not found. Static files will not be served.")
+
+# Templates directory
 templates = Jinja2Templates(directory="templates")
 
 # API Routes
@@ -62,6 +68,11 @@ def read_root(request: Request):
     """Serve the main HTML page"""
     return templates.TemplateResponse("index.html", {"request": request})
 
+# Health check endpoint for Render
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
